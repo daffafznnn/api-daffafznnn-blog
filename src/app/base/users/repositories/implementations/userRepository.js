@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import IUserRepository from "../interfaces/IUserRepository.js";
+import IRepository from "../interfaces/iUserRepository.js";
 
-class UserRepository extends IUserRepository{
+class UserRepository extends IRepository{
   constructor() {
+    super();
     this.prisma = new PrismaClient();
   }
 

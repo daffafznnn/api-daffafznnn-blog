@@ -1,32 +1,53 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import fileUpload from "express-fileupload";
 import dotenv from "dotenv";
-import { prisma } from "./database/config/config.js";
+import express from "express";
+import globalMiddleware from "../src/infrastructure/middlewares/globalMiddleware.js";
 
-dotenv.config();
+// Load environment variables based on NODE_ENV
+dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 
 const app = express();
+let server; // Variabel untuk menyimpan referensi ke server
 
-app.use(cors());
-app.use(helmet());
-app.use(express.json());
-app.use(fileUpload());
+const startServer = async () => {
+  try {
+    const { connectToDatabase, disconnectFromDatabase } = await import(
+      "./infrastructure/database/config/config.js"
+    );
+    await connectToDatabase();
 
-app.get("/hello", (req, res) => {
-  res.send("Hello, World!");
-});
+    // Middleware
+    globalMiddleware(app);
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something broke!");
-});
+    const PORT = process.env.PORT || 5005;
+    server = app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
 
-const PORT = process.env.PORT;
+    // Handle shutdown signals only in development environment
+    if (process.env.NODE_ENV === 'development') {
+      process.on('SIGINT', async () => {
+        console.log('SIGINT signal received: closing HTTP server');
+        server.close(async () => {
+          console.log('HTTP server closed');
+          await disconnectFromDatabase(); // Disconnected from database
+          process.exit(0);
+        });
+      });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+      process.on('SIGTERM', async () => {
+        console.log('SIGTERM signal received: closing HTTP server');
+        server.close(async () => {
+          console.log('HTTP server closed');
+          await disconnectFromDatabase(); // Disconnected from database
+          process.exit(0);
+        });
+      });
+    }
 
-export { app, prisma };
+  } catch (error) {
+    console.error("Error starting server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
