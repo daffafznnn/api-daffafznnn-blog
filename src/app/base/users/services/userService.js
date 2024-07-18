@@ -1,13 +1,15 @@
 import removeSensitiveFields from '../../../helpers/removeSensitiveFields.js';
-import UserRepository from '../repositories/implementations/userRepository.js';
+import UserRepository from '../repositories/userRepository.js';
+import BaseService from '../../../common/baseService.js';
+import { hashPassword } from '../../../helpers/passwordHelper.js';
 
-class UserService {
+class UserService extends BaseService {
   constructor() {
-    this.repository = UserRepository;
+    super(UserRepository);
   }
 
-  async getAll() {
-    const users = await this.repository.getAll();
+  async getAll(queryParams) {
+    const users = await super.getAll(queryParams);
     const sanitizedUsers = users.map(user => removeSensitiveFields(user));
 
     return {
@@ -18,7 +20,7 @@ class UserService {
   }
 
   async getById(id) {
-    const user = await this.repository.getById(id);
+    const user = await super.getById(id);
     if (!user) {
       throw { statusCode: 404, message: "User not Found" };
     }
@@ -30,7 +32,12 @@ class UserService {
   }
 
   async create(data) {
-    const user = await this.repository.create(data);
+    UserRepository.validateCreateData(data);
+
+    const hashedPassword = await hashPassword(data.password_hash);
+    const userData = { ...data, password_hash: hashedPassword };
+    const user = await super.create(userData);
+
     return {
       success: true,
       data: removeSensitiveFields(user),
@@ -39,19 +46,35 @@ class UserService {
   }
 
   async update(id, data) {
-    const user = await this.repository.update(id, data);
+    const user = await super.getById(id);
     if (!user) {
-      throw { statusCode: 404, message: "User not found" };
+      throw { statusCode: 404, message: "User not Found" };
     }
+
+    // Hash the password if provided
+    const hashedPassword = data.password_hash ? await hashPassword(data.password_hash) : undefined;
+
+    // Prepare user data for update
+    const userData = {
+      ...data,
+      password_hash: hashedPassword , // Use existing password_hash if not provided
+    };
+
+    // Validate data before updating
+    UserRepository.validateUpdateData(userData);
+
+    // Perform the update
+    const userUpdate = await super.update(user.id, userData);
+
     return {
       success: true,
-      data: removeSensitiveFields(user),
+      data: removeSensitiveFields(userUpdate),
       message: "User updated successfully"
     };
   }
 
   async delete(id) {
-    const user = await this.repository.delete(id);
+    const user = await super.delete(id);
     if (!user) {
       throw { statusCode: 404, message: "User not found" };
     }

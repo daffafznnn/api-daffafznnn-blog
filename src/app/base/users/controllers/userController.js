@@ -50,6 +50,8 @@ class UserController {
         message: response.message
       });
     } catch (error) {
+      // console.error('Error:', error);
+      // debugger;
       return res.status(error.statusCode || 500).json({
         success: false,
         payload: null,
@@ -70,6 +72,8 @@ class UserController {
         message: response.message
       });
     } catch (error) {
+      // console.error('Error:', error);
+      // debugger;
       return res.status(error.statusCode || 500).json({
         success: false,
         payload: null,

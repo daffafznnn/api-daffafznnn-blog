@@ -7,7 +7,7 @@ dotenvConfig({ path: envFile });
 
 // Prisma Client initialization
 const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"], // Enable logging for debugging
+  log: ["query", "info", "warn", "error"],
 });
 
 let isConnected = false;

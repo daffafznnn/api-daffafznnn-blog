@@ -1,15 +1,15 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Generate a salt
   const saltRounds = 12;
-  const salt = await bcrypt.genSalt(saltRounds);
+  const salt = await bcryptjs.genSalt(saltRounds);
 
   // Hash password
-  const hashedPassword = await bcrypt.hash("Admin@123", salt);
+  const hashedPassword = await bcryptjs.hash("Admin@123", salt);
 
   // Create admin user
   const adminUser = await prisma.user.create({
@@ -17,7 +17,7 @@ async function main() {
       username: "admin",
       email: "admin@example.com",
       password_hash: hashedPassword,
-      role: "admin",
+      role: "superadmin",
       is_active: true,
     },
   });
