@@ -1,6 +1,6 @@
 import createError from "http-errors";
 import logger from "../utils/Logger.js";
-import globalRoutes from "../routes/globalRoutes.js";
+import baseRouter from "../routes/baseRoute.js";
 import dotenv from "dotenv";
 import express from "express";
 import fileUpload from "express-fileupload";
@@ -43,7 +43,7 @@ const globalMiddleware = (app) => {
   app.use(requestLogger); // Logging request
 
   // Routes
-  app.use("/api/v1", globalRoutes);
+  app.use("/api/v1", baseRouter);
   
   app.use("/hello", (req, res) => {
     res.send("Hello World!");

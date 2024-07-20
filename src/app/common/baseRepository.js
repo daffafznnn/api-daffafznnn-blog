@@ -7,32 +7,54 @@ class BaseRepository {
   }
 
   async getAll() {
-    return await this.model.findMany();
+    try {
+      return await this.model.findMany();
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   async getById(id) {
     this.validateId(id);
-    return await this.model.findUnique({ where: { id } });
+    try {
+      return await this.model.findUnique({ where: { id } });
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   async create(data) {
-    this.validateCreateData(data);
-    return await this.model.create({ data });
+    try {
+      return await this.model.create({ data });
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   async update(id, data) {
     this.validateId(id);
-    this.validateUpdateData(data);
-    return await this.model.update({ where: { id }, data });
+    try {
+      return await this.model.update({ where: { id }, data });
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   async delete(id) {
     this.validateId(id);
-    return await this.model.delete({ where: { id } });
+    try {
+      return await this.model.delete({ where: { id } });
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   async count() {
-    return await this.model.count();
+    try {
+      return await this.model.count();
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   getSearchConditions(search) {
@@ -44,14 +66,6 @@ class BaseRepository {
     if (!id || typeof id !== 'string') {
       throw new Error('Invalid ID');
     }
-  }
-
-  validateCreateData(data) {
-    throw new Error("Method not implemented.");
-  }
-
-  validateUpdateData(data) {
-    throw new Error("Method not implemented.");
   }
 
   handleDatabaseError(error) {

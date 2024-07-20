@@ -1,9 +1,10 @@
-import UserService from '../services/userService.js';
+import { response } from "express";
+import userProcessor from "../Processors/userProcessor.js";
 
 class UserController {
   async getAll(req, res) {
     try {
-      const response = await UserService.getAll();
+      const response = await userProcessor.processRequest('getAll', req.query);
       return res.status(200).json({
         success: true,
         payload: response.data,
@@ -23,7 +24,7 @@ class UserController {
 
   async getById(req, res) {
     try {
-      const response = await UserService.getById(req.params.id);
+      const response = await userProcessor.processRequest('getById', req.params.id);
       return res.status(200).json({
         success: true,
         payload: response.data,
@@ -43,15 +44,13 @@ class UserController {
 
   async create(req, res) {
     try {
-      const response = await UserService.create(req.body);
+      const response = await userProcessor.processRequest('create', req.body);
       return res.status(201).json({
         success: true,
         payload: response.data,
         message: response.message
       });
     } catch (error) {
-      // console.error('Error:', error);
-      // debugger;
       return res.status(error.statusCode || 500).json({
         success: false,
         payload: null,
@@ -65,15 +64,13 @@ class UserController {
 
   async update(req, res) {
     try {
-      const response = await UserService.update(req.params.id, req.body);
+      const response = await userProcessor.processRequest('update', req.params.id, req.body);
       return res.status(200).json({
         success: true,
         payload: response.data,
         message: response.message
       });
     } catch (error) {
-      // console.error('Error:', error);
-      // debugger;
       return res.status(error.statusCode || 500).json({
         success: false,
         payload: null,
@@ -87,7 +84,7 @@ class UserController {
 
   async delete(req, res) {
     try {
-      const response = await UserService.delete(req.params.id);
+      const response = await userProcessor.processRequest('delete', req.params.id);
       return res.status(200).json({
         success: true,
         payload: response.data,
@@ -100,6 +97,28 @@ class UserController {
         error: {
           code: error.statusCode || 500,
           message: error.message || "Error deleting user",
+        },
+      });
+    }
+  }
+
+  // Universal custom method handler
+  async processCustomMethod(req, res) {
+    const { method } = req.params;
+    try {
+      const response = await userProcessor.processRequest(method, req.body);
+      return res.status(200).json({
+        success: true,
+        payload: response.data,
+        message: response.message
+      });
+    } catch (error) {
+      return res.status(error.statusCode || 500).json({
+        success: false,
+        payload: null,
+        error: {
+          code: error.statusCode || 500,
+          message: error.message || `Error processing method ${method}`,
         },
       });
     }
